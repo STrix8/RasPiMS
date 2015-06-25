@@ -10,15 +10,15 @@ namespace RPMS {
 	}sendDataFormat;
 	class MoterSerial {
 	public:
+		MoterSerial(int, double timeOut = 0.01, char *serialFileName = "/dev/ttyAMA0", int bRate = 115200);
 		MoterSerial();
-		MoterSerial(int, double timeOut = 0.01, char *devFileName = "/dev/ttyAMA0");
 		short send(char, char, short);
 		short send(sendDataFormat);
 		virtual ~MoterSerial();
 	private:
 		static bool nowSendingFlag;
 		static double timeOut;
-		static std::fstream devFile;
+		static int serial;
 		int redePin;
 	}
 }
