@@ -11,7 +11,7 @@ namespace RPMS {
 	}sendDataFormat;
 	class MoterSerial {
 	public:
-		MoterSerial(int, double timeOut = 0.01, char *serialFileName = "/dev/ttyAMA0", int bRate = 115200);
+		MoterSerial(int, double timeOut = 0.01, const char *serialFileName = "/dev/ttyAMA0", int bRate = 115200);
 		MoterSerial();
 		short send(unsigned char, unsigned char, short, bool multiThread = false);
 		short send(sendDataFormat, bool multiThread = false);
@@ -23,5 +23,5 @@ namespace RPMS {
 		static int serial;
 		int redePin;
 		static std::thread sendThread;
-	}
+	};
 }

@@ -10,8 +10,8 @@ using namespace RPMS;
 
 bool nowSendingFlag = false;
 double timeOut = 0.0;
-int serialFile = NULL;
-thread sendThread = nullptr;
+int serialFile = 0;
+thread sendThread = (thread)nullptr;
 
 MoterSerial::MoterSerial(int rede, double timeout, char *devFileName, int bRate) {
 	serialFile = serialOpen(devFileName, bRate);
