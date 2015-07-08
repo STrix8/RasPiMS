@@ -13,7 +13,7 @@ double timeOut = 0.0;
 int serialFile = 0;
 thread sendThread = (thread)nullptr;
 
-MoterSerial::MoterSerial(int rede, double timeout, char *devFileName, int bRate) {
+MotorSerial::MotorSerial(int rede, double timeout, char *devFileName, int bRate) {
 	serialFile = serialOpen(devFileName, bRate);
 	if (serialFile < 0) {
 		puts("Cannot open serialport.");
@@ -28,11 +28,11 @@ MoterSerial::MoterSerial(int rede, double timeout, char *devFileName, int bRate)
 	pinMode(redePin, OUTPUT);
 }
 
-MoterSerial::MoterSerial() {
-	MoterSerial(4);
+MotorSerial::MotorSerial() {
+	MotorSerial(4);
 }
 
-short MoterSerial::sending(unsigned char id, unsigned char cmd, short data){
+short MotorSerial::sending(unsigned char id, unsigned char cmd, short data){
 	char *sendArray = [0xFF, STX, id, cmd, data % 0x100, data / 0x100, (id + cmd + data % 0x100 + data / 0x100) % 0x100];
 	while (nowSendingFlag);
 	nowSendingFlag = true;
@@ -65,7 +65,7 @@ short MoterSerial::sending(unsigned char id, unsigned char cmd, short data){
 	return receiveArray[2] + receiveArray[3] * 0x100;
 }
 
-short MoterSerial::send(unsigned char id, unsigned char cmd, short data, bool multiThread) {
+short MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool multiThread) {
 	if (multiThread) {
 		if (sendThread.joinable())	
 			sendThread.join();
@@ -75,6 +75,6 @@ short MoterSerial::send(unsigned char id, unsigned char cmd, short data, bool mu
 	return sending(id, cmd, data);
 }
 
-short MoterSerial::send(sendDataFormat sendData, bool multiThread) {
+short MotorSerial::send(sendDataFormat sendData, bool multiThread) {
 	return send(sendData.id, sendData.cmd, sendData.data, multiThread);
 }
