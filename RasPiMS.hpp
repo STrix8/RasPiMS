@@ -3,19 +3,22 @@
 #include <fstream>
 #include <thread>
 
+const char *SerialPortOpenError = "Cannot open serialport.";
+const char *WiringPiSetupError = "WiringPi Setup Error.";
+
 namespace RPMS {
 	typedef struct {
 		unsigned char id;
 		unsigned char cmd;
 		short argData;
 	}sendDataFormat;
-	class MoterSerial {
+	class MotorSerial {
 	public:
-		MoterSerial(int, double timeOut = 0.01, const char *serialFileName = "/dev/ttyAMA0", int bRate = 115200);
-		MoterSerial();
+		MotorSerial(int, double timeOut = 0.01, const char *serialFileName = "/dev/ttyAMA0", int bRate = 115200);
+		MotorSerial();
 		short send(unsigned char, unsigned char, short, bool multiThread = false);
 		short send(sendDataFormat, bool multiThread = false);
-		virtual ~MoterSerial();
+		virtual ~MotorSerial();
 	private:
 		short sending(unsigned char, unsigned char, short);
 		static bool nowSendingFlag;
