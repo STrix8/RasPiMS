@@ -19,8 +19,8 @@ namespace RPMS {
 		short send(unsigned char, unsigned char, short, bool multiThread = false);
 		short send(sendDataFormat, bool multiThread = false);
 		virtual ~MotorSerial();
-	private:
 		short sending(unsigned char, unsigned char, short);
+	private:
 		static bool nowSendingFlag;
 		static double timeOut;
 		static int serial;

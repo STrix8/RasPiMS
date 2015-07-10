@@ -11,7 +11,7 @@ using namespace RPMS;
 bool nowSendingFlag = false;
 double timeOut = 0.0;
 int serialFile = 0;
-thread sendThread = (thread)nullptr;
+thread sendThread;
 
 MotorSerial::MotorSerial(int rede, double timeout, const char *devFileName, int bRate) {
 	serialFile = serialOpen(devFileName, bRate);
@@ -23,6 +23,7 @@ MotorSerial::MotorSerial(int rede, double timeout, const char *devFileName, int 
 	redePin = rede;
 	if (wiringPiSetupGpio() < 0) {
 		puts("WiringPi Setup Error");
+		serialClose(serialFile);
 		throw WiringPiSetupError;
 	}
 	pinMode(redePin, OUTPUT);
@@ -69,12 +70,12 @@ short MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool mu
 	if (multiThread) {
 		if (sendThread.joinable())	
 			sendThread.join();
-		sendThread = thread(sending, &id, &cmd, &data);	
+		sendThread = thread([&]{ sending(id, cmd, data); });	
 		return 0;
 	}
 	return sending(id, cmd, data);
 }
 
 short MotorSerial::send(sendDataFormat sendData, bool multiThread) {
-	return send(sendData.id, sendData.cmd, sendData.data, multiThread);
+	return send(sendData.id, sendData.cmd, sendData.argData, multiThread);
 }
