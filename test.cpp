@@ -5,10 +5,9 @@ using namespace std;
 using namespace RPMS;
 
 int main(void) {
-	MoterSerial ms;
-	cout << id cmd data << endl;
-	sendDataFormat dat = {};
-	cin >> (int)dat.id >> (int)dat.cmd >> dat.data;
-	cout << ms.send(dat); << endl;
+	MotorSerial ms;
+	int id, cmd, data;
+	cin >> id >> cmd >> data;
+	cout << ms.send(id, cmd, data) << endl;
 	return 0;
 }
