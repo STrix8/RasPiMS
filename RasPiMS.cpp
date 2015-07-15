@@ -5,21 +5,24 @@
 
 const int STX = 0x41;
 
+const char *SerialPortOpenError = "Cannot open serialport.";
+const char *WiringPiSetupError = "WiringPi Setup Error.";
+
 using namespace std;
 using namespace RPMS;
 
-bool nowSendingFlag = false;
-double timeOut = 0.0;
-int serialFile = 0;
-thread sendThread;
+bool MotorSerial::nowSendingFlag = false;
+double MotorSerial::timeOut = 0.0;
+int MotorSerial::serialFile = 0;
+thread MotorSerial::sendThread;
 
 MotorSerial::MotorSerial(int rede, double timeout, const char *devFileName, int bRate) {
-	serialFile = serialOpen(devFileName, bRate);
+	this->serialFile = serialOpen(devFileName, bRate);
 	if (serialFile < 0) {
 		puts("Cannot open serialport.");
 		throw SerialPortOpenError;
 	}
-	timeOut = timeout;
+	this->timeOut = timeout;
 	redePin = rede;
 	if (wiringPiSetupGpio() < 0) {
 		puts("WiringPi Setup Error");
@@ -78,4 +81,8 @@ short MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool mu
 
 short MotorSerial::send(sendDataFormat sendData, bool multiThread) {
 	return send(sendData.id, sendData.cmd, sendData.argData, multiThread);
+}
+
+MotorSerial::~MotorSerial() {
+	serialClose(this->serialFile);
 }
