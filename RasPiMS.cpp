@@ -3,13 +3,16 @@
 #include <thread>
 #include "RasPiMS.hpp"
 
-const int STX = 0x41;
+#include <iostream>
 
-const char *SerialPortOpenError = "Cannot open serialport.";
-const char *WiringPiSetupError = "WiringPi Setup Error.";
+const int STX = 0x41;
 
 using namespace std;
 using namespace RPMS;
+
+const char *RPMS::SerialPortOpenError = "Cannot open serialport.";
+const char *RPMS::WiringPiSetupError = "WiringPi Setup Error.";
+const char *RPMS::SerialError = "Serial Error.";
 
 bool MotorSerial::nowSendingFlag = false;
 double MotorSerial::timeOut = 0.0;
@@ -19,13 +22,11 @@ thread MotorSerial::sendThread;
 MotorSerial::MotorSerial(int rede, double timeout, const char *devFileName, int bRate) {
 	this->serialFile = serialOpen(devFileName, bRate);
 	if (serialFile < 0) {
-		puts("Cannot open serialport.");
 		throw SerialPortOpenError;
 	}
 	this->timeOut = timeout;
 	redePin = rede;
 	if (wiringPiSetupGpio() < 0) {
-		puts("WiringPi Setup Error");
 		serialClose(serialFile);
 		throw WiringPiSetupError;
 	}
@@ -44,11 +45,12 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data){
 	digitalWrite(redePin, 1);	
 	serialPuts(serialFile, (const char*)sendArray);
 	digitalWrite(redePin, 0);
-
+	
 	bool stxFlag = false;
 	char receiveArray[5] = {};
 	int i = 0;
-	while(serialDataAvail(serialFile)) {
+
+	while(serialDataAvail(serialFile) > 0) {
 		char gotData = serialGetchar(serialFile);
 		if (gotData == STX && !stxFlag) {
 			stxFlag = true;
@@ -64,6 +66,9 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data){
 			if (sum == receiveArray[4])
 				break;
 		}
+	}
+	if (serialDataAvail(serialFile) < 0) {
+		throw SerialError;
 	}
 	nowSendingFlag = false;
 	return receiveArray[2] + receiveArray[3] * 0x100;
