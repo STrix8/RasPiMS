@@ -14,8 +14,9 @@ namespace RPMS {
 	}sendDataFormat;
 	class MotorSerial {
 	public:
-		MotorSerial(int, double timeout = 0.01, const char *serialFileName = "/dev/ttyAMA0", int bRate = 115200);
+		MotorSerial(int, double timeout = 0.01, const char *devFileName = "/dev/ttyAMA0", int bRate = 115200);
 		MotorSerial();
+		void init();
 		short send(unsigned char, unsigned char, short, bool multiThread = false);
 		short send(sendDataFormat, bool multiThread = false);
 		virtual ~MotorSerial();
@@ -24,6 +25,8 @@ namespace RPMS {
 		static bool nowSendingFlag;
 		static double timeOut;
 		static int serialFile;
+		static char *serialFileName;
+		static int bRate;
 		int redePin;
 		static std::thread sendThread;
 	};

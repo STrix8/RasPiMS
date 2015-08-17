@@ -10,6 +10,8 @@ const int STX = 0x41;
 using namespace std;
 using namespace RPMS;
 
+const int SEND_DATA_NUM = 7;
+
 const char *RPMS::SerialPortOpenError = "Cannot open serialport.";
 const char *RPMS::WiringPiSetupError = "WiringPi Setup Error.";
 const char *RPMS::SerialError = "Serial Error.";
@@ -17,15 +19,26 @@ const char *RPMS::SerialError = "Serial Error.";
 bool MotorSerial::nowSendingFlag = false;
 double MotorSerial::timeOut = 0.0;
 int MotorSerial::serialFile = 0;
+char *MotorSerial::serialFileName;
+int MotorSerial::bRate = 0;
 thread MotorSerial::sendThread;
 
 MotorSerial::MotorSerial(int rede, double timeout, const char *devFileName, int bRate) {
-	this->serialFile = serialOpen(devFileName, bRate);
+	this->serialFileName = (char*)devFileName;
+	this->bRate = bRate;
+	this->timeOut = timeout;
+	redePin = rede;
+}
+
+MotorSerial::MotorSerial() {
+	MotorSerial(4);
+}
+
+void MotorSerial::init() {
+	this->serialFile = serialOpen(serialFileName, bRate);
 	if (serialFile < 0) {
 		throw SerialPortOpenError;
 	}
-	this->timeOut = timeout;
-	redePin = rede;
 	if (wiringPiSetupGpio() < 0) {
 		serialClose(serialFile);
 		throw WiringPiSetupError;
@@ -33,17 +46,14 @@ MotorSerial::MotorSerial(int rede, double timeout, const char *devFileName, int 
 	pinMode(redePin, OUTPUT);
 }
 
-MotorSerial::MotorSerial() {
-	MotorSerial(4);
-}
-
 short MotorSerial::sending(unsigned char id, unsigned char cmd, short data){
-	unsigned char sendArray[7] = {0xFF, STX, id, cmd, (unsigned char)(data % 0x100), (unsigned char)(data / 0x100), (unsigned char)((id + cmd + data % 0x100 + data / 0x100) % 0x100)};
+	unsigned char sendArray[SEND_DATA_NUM] = {0xFF, STX, id, cmd, (unsigned char)(data % 0x100), (unsigned char)(data / 0x100), (unsigned char)((id + cmd + data % 0x100 + data / 0x100) % 0x100)};
 	while (nowSendingFlag);
 	nowSendingFlag = true;
 	
-	digitalWrite(redePin, 1);	
-	serialPuts(serialFile, (const char*)sendArray);
+	digitalWrite(redePin, 1);
+	for (int i = 0; i < SEND_DATA_NUM; ++i)
+		serialPutchar(serialFile, sendArray[i]);
 	digitalWrite(redePin, 0);
 	
 	bool stxFlag = false;
