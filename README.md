@@ -12,4 +12,4 @@ void RPMS::MotorSerial::init() GPIOの初期化とか、シリアル通信のOpe
 
 short RPMS::MotorSerial::sending(unsigned char id, unsigned char cmd, short data) id番の基板に対してcmd dataを送信します。返り値としてid番の基板から返ってきたdataを返します。
 
-short RPMS::MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool multiThread = false) multiThread = falseならsending()と同じ動作をします。multiThread = trueなら非同期で通信してくれます.
+short RPMS::MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool multiThread = false) multiThread = falseならsending()と同じ動作をします。multiThread = trueなら非同期で通信してくれます。その場合返り値は0です。
