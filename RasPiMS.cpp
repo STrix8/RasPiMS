@@ -99,5 +99,7 @@ short MotorSerial::send(sendDataFormat sendData, bool multiThread) {
 }
 
 MotorSerial::~MotorSerial() {
+	if (sendThread.joinable())
+		sendThread.join();
 	serialClose(this->serialFile);
 }
