@@ -22,6 +22,7 @@ int MotorSerial::serialFile = 0;
 char *MotorSerial::serialFileName;
 int MotorSerial::bRate = 0;
 thread MotorSerial::sendThread;
+bool MotorSerial::sumCheckSuccess = true;
 
 MotorSerial::MotorSerial(int rede, double timeout, const char *devFileName, int bRate) {
 	this->serialFileName = (char*)devFileName;
@@ -73,8 +74,11 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data){
 			int sum = 0;
 			for (int j = 0; j < 4; ++j) 
 				sum = receiveArray[j];
-			if (sum == receiveArray[4])
+			if (sum == receiveArray[4]) {
+				sumCheckSuccess = false;
 				break;
+			} else
+				sumCheckSuccess = true; 
 		}
 	}
 	if (serialDataAvail(serialFile) < 0) {

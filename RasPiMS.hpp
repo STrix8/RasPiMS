@@ -19,8 +19,8 @@ namespace RPMS {
 		void init();
 		short send(unsigned char, unsigned char, short, bool multiThread = false);
 		short send(sendDataFormat, bool multiThread = false);
-		virtual ~MotorSerial();
 		short sending(unsigned char, unsigned char, short);
+		virtual ~MotorSerial();
 	private:
 		static bool nowSendingFlag;
 		static double timeOut;
@@ -29,5 +29,6 @@ namespace RPMS {
 		static int bRate;
 		int redePin;
 		static std::thread sendThread;
+		static bool sumCheckSuccess;
 	};
 }
