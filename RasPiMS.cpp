@@ -25,6 +25,7 @@ thread MotorSerial::sendThread;
 
 MotorSerial::MotorSerial(int rede, double timeout, const char *devFileName, int bRate) {
 	sumCheckSuccess = false;
+	serialReceiveSuccess = false;
 	recentReceiveData = 0;
 	this->serialFileName = (char*)devFileName;
 	this->bRate = bRate;
@@ -62,24 +63,29 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data){
 	char receiveArray[5] = {};
 	int i = 0;
 
-	while(serialDataAvail(serialFile) > 0) {
-		char gotData = serialGetchar(serialFile);
-		if (gotData == STX && !stxFlag) {
-			stxFlag = true;
-			continue;
-		}
-		if (stxFlag) {
-			receiveArray[i++] = gotData;
-		}
-		if (i > 4) {
-			int sum = 0;
-			for (int j = 0; j < 4; ++j) 
-				sum = receiveArray[j];
-			if (sum == receiveArray[4]) {
-				sumCheckSuccess = true;
-				break;
-			} else
-				sumCheckSuccess = false; 
+	if (serialDataAvail(serialFile) == 0) {
+		serialReceiveSuccess = false;
+	} else {
+		serialReceiveSuccess = true;
+		while(serialDataAvail(serialFile) > 0) {
+			char gotData = serialGetchar(serialFile);
+			if (gotData == STX && !stxFlag) {
+				stxFlag = true;
+				continue;
+			}
+			if (stxFlag) {
+				receiveArray[i++] = gotData;
+			}
+			if (i > 4) {
+				int sum = 0;
+				for (int j = 0; j < 4; ++j) 
+					sum = receiveArray[j];
+				if (sum == receiveArray[4]) {
+					sumCheckSuccess = true;
+					break;
+				} else
+					sumCheckSuccess = false; 
+			}
 		}
 	}
 	if (serialDataAvail(serialFile) < 0) {

@@ -23,6 +23,7 @@ namespace RPMS {
 		virtual ~MotorSerial();
 		bool sumCheckSuccess;
 		short recentReceiveData;
+		bool serialReceiveSuccess;
 	private:
 		static bool nowSendingFlag;
 		static double timeOut;
