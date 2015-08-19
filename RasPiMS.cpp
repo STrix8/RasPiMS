@@ -76,10 +76,10 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data){
 			for (int j = 0; j < 4; ++j) 
 				sum = receiveArray[j];
 			if (sum == receiveArray[4]) {
-				sumCheckSuccess = false;
+				sumCheckSuccess = true;
 				break;
 			} else
-				sumCheckSuccess = true; 
+				sumCheckSuccess = false; 
 		}
 	}
 	if (serialDataAvail(serialFile) < 0) {
