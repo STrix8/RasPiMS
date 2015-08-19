@@ -29,6 +29,7 @@ namespace RPMS {
 		static int bRate;
 		int redePin;
 		static std::thread sendThread;
-		static bool sumCheckSuccess;
+		bool sumCheckSuccess;
+		short recentReceiveData;
 	};
 }

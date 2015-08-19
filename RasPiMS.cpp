@@ -22,9 +22,10 @@ int MotorSerial::serialFile = 0;
 char *MotorSerial::serialFileName;
 int MotorSerial::bRate = 0;
 thread MotorSerial::sendThread;
-bool MotorSerial::sumCheckSuccess = true;
 
 MotorSerial::MotorSerial(int rede, double timeout, const char *devFileName, int bRate) {
+	sumCheckSuccess = false;
+	recentReceiveData = 0;
 	this->serialFileName = (char*)devFileName;
 	this->bRate = bRate;
 	this->timeOut = timeout;
@@ -85,7 +86,8 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data){
 		throw SerialError;
 	}
 	nowSendingFlag = false;
-	return receiveArray[2] + receiveArray[3] * 0x100;
+	recentReceiveData = receiveArray[2] + receiveArray[3] * 0x100;
+	return recentReceiveData;
 }
 
 short MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool multiThread) {
