@@ -1,6 +1,7 @@
 #include <wiringPi.h>
 #include <wiringSerial.h>
 #include <thread>
+#include <chrono>
 #include "RasPiMS.hpp"
 
 #include <iostream>
@@ -17,13 +18,13 @@ const char *RPMS::WiringPiSetupError = "WiringPi Setup Error.";
 const char *RPMS::SerialError = "Serial Error.";
 
 bool MotorSerial::nowSendingFlag = false;
-double MotorSerial::timeOut = 0.0;
+int MotorSerial::timeOut = 0;
 int MotorSerial::serialFile = 0;
 char *MotorSerial::serialFileName;
 int MotorSerial::bRate = 0;
 thread MotorSerial::sendThread;
 
-MotorSerial::MotorSerial(int rede, double timeout, const char *devFileName, int bRate) {
+MotorSerial::MotorSerial(int rede, int timeout, const char *devFileName, int bRate) {
 	sumCheckSuccess = false;
 	serialReceiveSuccess = false;
 	recentReceiveData = 0;
@@ -63,7 +64,11 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data){
 	char receiveArray[5] = {};
 	int i = 0;
 
-	if (serialDataAvail(serialFile) == 0) {
+	auto startTime = chrono::system_clock::now();
+	bool timeOutFlag = false;
+	while ((serialDataAvail(serialFile) == 0) && !timeOutFlag)
+		timeOutFlag = chrono::time_point<chrono::system_clock>(startTime + chrono::milliseconds(timeOut)) > chrono::system_clock::now();
+	if (timeOutFlag) {
 		serialReceiveSuccess = false;
 	} else {
 		serialReceiveSuccess = true;

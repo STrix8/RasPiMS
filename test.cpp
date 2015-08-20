@@ -13,13 +13,8 @@ int main(void) {
 		cout << str << endl;
 		return -1;
 	}
-	int id, cmd, data;
-	//cin >> id >> cmd >> data;
-	id = 2;
-	cmd = 2;
-	data = -255;
 	try {
-		cout << ms.sending(id, cmd, data) << endl;
+		cout << ms.sending(3, 2, 255) << endl;
 	}
 	catch(const char *str) {
 		cout << str << endl;
