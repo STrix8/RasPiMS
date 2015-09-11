@@ -51,7 +51,6 @@ void MotorSerial::init() {
 }
 
 short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
-
 	unsigned short uData = (unsigned short)data;
 	unsigned char sendArray[SEND_DATA_NUM] = {0xFF, STX, id, cmd, (unsigned char)(uData % 0x100), (unsigned char)(uData / 0x100), (unsigned char)((id + cmd + uData % 0x100 + uData / 0x100) % 0x100)};
 	while (nowSendingFlag);
@@ -103,16 +102,15 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 	return recentReceiveData;
 }
 
-void MotorSerial::sendingForThread(unsigned char id, unsigned char cmd, short data, thread oldThread) {
-	if (oldThread.joinable())	
-		oldThread.join();
+void MotorSerial::sendingForThread(unsigned char id, unsigned char cmd, short data, thread *oldThread) {
+	if (oldThread->joinable())	
+		oldThread->join();
 	sending(id, cmd, data);
 }
 
 short MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool multiThread) {
 	if (multiThread) {
-		thread oldThread = sendThread;	
-		sendThread = thread([&]{ sendingForThread(id, cmd, data, oldThread); });	
+		sendThread = thread([&]{ sendingForThread(id, cmd, data, &sendThread); });	
 		return 0;
 	}
 	return sending(id, cmd, data);
