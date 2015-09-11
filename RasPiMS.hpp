@@ -25,6 +25,7 @@ namespace RPMS {
 		short recentReceiveData;
 		bool serialReceiveSuccess;
 	private:
+		void sendingForThread(unsigned char, unsigned char, short, std::thread);
 		static bool nowSendingFlag;
 		static int timeOut;
 		static int serialFile;
