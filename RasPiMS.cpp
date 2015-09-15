@@ -13,10 +13,6 @@ using namespace RPMS;
 
 const int SEND_DATA_NUM = 7;
 
-const char *RPMS::SerialPortOpenError = "Cannot open serialport.";
-const char *RPMS::WiringPiSetupError = "WiringPi Setup Error.";
-const char *RPMS::SerialError = "Serial Error.";
-
 bool MotorSerial::nowSendingFlag = false;
 int MotorSerial::timeOut = 0;
 int MotorSerial::serialFile = 0;
@@ -41,11 +37,11 @@ MotorSerial::MotorSerial() {
 void MotorSerial::init() {
 	this->serialFile = serialOpen(serialFileName, bRate);
 	if (serialFile < 0) {
-		throw SerialPortOpenError;
+		throw runtime_error("SerialOpenError");
 	}
 	if (wiringPiSetupGpio() < 0) {
 		serialClose(serialFile);
-		throw WiringPiSetupError;
+		throw runtime_error("WiringPiSetupError");
 	}
 	pinMode(redePin, OUTPUT);
 }
@@ -95,7 +91,7 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 		}
 	}
 	if (serialDataAvail(serialFile) < 0) {
-		throw SerialError;
+		throw runtime_error("SerialComError");
 	}
 	nowSendingFlag = false;
 	recentReceiveData = receiveArray[2] + receiveArray[3] * 0x100;

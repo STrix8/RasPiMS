@@ -9,8 +9,8 @@ int main(int argc, char *argv[]) {
 	try {
 		ms.init();
 	}
-	catch(const char *str) {
-		cout << str << endl;
+	catch(runtime_error exception) {
+		cout << "Setup Error" << endl;
 		return -1;
 	}
 	unsigned char id, cmd;
@@ -28,8 +28,8 @@ int main(int argc, char *argv[]) {
 	try {
 		cout << ms.sending(id, cmd, data) << endl;
 	}
-	catch(const char *str) {
-		cout << str << endl;
+	catch(runtime_error exception) {
+		cout << "Communication Error." << endl;
 		return -1;
 	}
 	return 0;

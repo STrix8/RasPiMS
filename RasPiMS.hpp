@@ -4,9 +4,6 @@
 #include <thread>
 
 namespace RPMS {
-	extern const char *SerialPortOpenError;
-	extern const char *WiringPiSetupError;
-	extern const char *SerialError;
 	typedef struct {
 		unsigned char id;
 		unsigned char cmd;
@@ -34,4 +31,5 @@ namespace RPMS {
 		int redePin;
 		static std::thread sendThread;
 	};
+
 }
