@@ -62,7 +62,7 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 	int i = 0;
 
 	auto startTime = chrono::system_clock::now();
-	bool timeOutFlag = false;
+//	bool timeOutFlag = false;
 /*
 	while ((serialDataAvail(serialFile) < 7) && !timeOutFlag)
 		timeOutFlag = chrono::time_point<chrono::system_clock>(startTime + chrono::milliseconds(timeOut)) < chrono::system_clock::now();
@@ -109,7 +109,10 @@ void MotorSerial::sendingForThread(unsigned char id, unsigned char cmd, short da
 
 short MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool multiThread) {
 	if (multiThread) {
-		sendThread = thread([&]{ sendingForThread(id, cmd, data, &sendThread); });	
+		if (sendThread.joinable())
+			sendThread.join();
+		sendThread = thread([&]{ sending(id, cmd, data); });
+//		sendThread = thread([&]{ sendingForThread(id, cmd, data, &sendThread); });	
 		return 0;
 	}
 	return sending(id, cmd, data);
