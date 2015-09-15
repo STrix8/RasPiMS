@@ -63,12 +63,15 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 
 	auto startTime = chrono::system_clock::now();
 	bool timeOutFlag = false;
-	while ((serialDataAvail(serialFile) == 0) && !timeOutFlag)
-		timeOutFlag = chrono::time_point<chrono::system_clock>(startTime + chrono::milliseconds(timeOut)) > chrono::system_clock::now();
+/*
+	while ((serialDataAvail(serialFile) < 7) && !timeOutFlag)
+		timeOutFlag = chrono::time_point<chrono::system_clock>(startTime + chrono::milliseconds(timeOut)) < chrono::system_clock::now();
 	if (timeOutFlag) {
 		serialReceiveSuccess = false;
 	} else {
 		serialReceiveSuccess = true;
+  */
+  while(chrono::time_point<chrono::system_clock>(startTime + chrono::milliseconds(timeOut)) >= chrono::system_clock::now()) {
 		while(serialDataAvail(serialFile) > 0) {
 			char gotData = serialGetchar(serialFile);
 			if (gotData == STX && !stxFlag) {
