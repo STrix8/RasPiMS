@@ -63,6 +63,7 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 
 	auto startTime = chrono::system_clock::now();
 	bool timeOutFlag = false;
+<<<<<<< HEAD
 /*
 	while ((serialDataAvail(serialFile) < 7) && !timeOutFlag)
 		timeOutFlag = chrono::time_point<chrono::system_clock>(startTime + chrono::milliseconds(timeOut)) < chrono::system_clock::now();
