@@ -3,6 +3,8 @@
 #include <chrono>
 #include <thread>
 #include <queue>
+#include <cstring>
+#include <pthread.h>
 #include "RasPiMS.hpp"
 
 #include <iostream>
@@ -45,10 +47,6 @@ void MotorSerial::init() {
 	if (wiringPiSetupGpio() < 0) {
 		serialClose(serialFile);
 		throw runtime_error("WiringPiSetupError");
-	}
-	if (!threadLoopFlag ) {
-		threadLoopFlag = true;
-		sendThread = thread([&]{ sendingLoop(); });
 	}
 	pinMode(redePin, OUTPUT);
 }
@@ -109,19 +107,29 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 }
 
 void MotorSerial::sendingLoop(void) {
-	while (threadLoopFlag) {
-		if (!sendDataQueue.empty()) {
-			sendDataFormat sendData = sendDataQueue.front();
-			sendDataQueue.pop();
-			sending(sendData.id, sendData.cmd, sendData.argData);
-		}
+	while (!sendDataQueue.empty()) {
+		threadLoopFlag = true;
+		sendDataFormat sendData = sendDataQueue.front();
+		sendDataQueue.pop();
+		sending(sendData.id, sendData.cmd, sendData.argData);
 	}
+	threadLoopFlag = false;
 }
 
 short MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool asyncFlag) {
 	if (asyncFlag) {
 		sendDataFormat sendData = {id, cmd, data};
 		sendDataQueue.push(sendData);
+		if (!threadLoopFlag ) {
+			if (sendThread.joinable()) 
+				sendThread.join();
+			sendThread = thread([&]{ sendingLoop(); });
+			sched_param sch_params;
+			sch_params.sched_priority = 1;
+			if (pthread_setschedparam(sendThread.native_handle(), SCHED_RR, &sch_params)) {
+				cerr << "Failed to set Thread scheduling :" << strerror(errno) << endl;
+			}
+		}
 		return 0;
 	}
 	return sending(id, cmd, data);
@@ -132,7 +140,6 @@ short MotorSerial::send(sendDataFormat sendData, bool asyncFlag) {
 }
 
 MotorSerial::~MotorSerial() {
-	threadLoopFlag = false;
 	if (sendThread.joinable())
 		sendThread.join();
 	serialClose(this->serialFile);
