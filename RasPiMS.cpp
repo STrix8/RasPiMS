@@ -1,7 +1,8 @@
 #include <wiringPi.h>
 #include <wiringSerial.h>
-#include <thread>
 #include <chrono>
+#include <thread>
+#include <queue>
 #include "RasPiMS.hpp"
 
 #include <iostream>
@@ -18,7 +19,9 @@ int MotorSerial::timeOut = 0;
 int MotorSerial::serialFile = 0;
 char *MotorSerial::serialFileName;
 int MotorSerial::bRate = 0;
+bool MotorSerial::threadLoopFlag = false;
 thread MotorSerial::sendThread;
+queue<sendDataFormat> MotorSerial::sendDataQueue;
 
 MotorSerial::MotorSerial(int rede, int timeout, const char *devFileName, int bRate) {
 	sumCheckSuccess = false;
@@ -42,6 +45,10 @@ void MotorSerial::init() {
 	if (wiringPiSetupGpio() < 0) {
 		serialClose(serialFile);
 		throw runtime_error("WiringPiSetupError");
+	}
+	if (!threadLoopFlag ) {
+		threadLoopFlag = true;
+		sendThread = thread([&]{ sendingLoop(); });
 	}
 	pinMode(redePin, OUTPUT);
 }
@@ -101,28 +108,31 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 	return recentReceiveData;
 }
 
-void MotorSerial::sendingForThread(unsigned char id, unsigned char cmd, short data, thread *oldThread) {
-	if (oldThread->joinable())	
-		oldThread->join();
-	sending(id, cmd, data);
+void MotorSerial::sendingLoop(void) {
+	while (threadLoopFlag) {
+		if (!sendDataQueue.empty()) {
+			sendDataFormat sendData = sendDataQueue.front();
+			sendDataQueue.pop();
+			sending(sendData.id, sendData.cmd, sendData.argData);
+		}
+	}
 }
 
-short MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool multiThread) {
-	if (multiThread) {
-		if (sendThread.joinable())
-			sendThread.join();
-		sendThread = thread([&]{ sending(id, cmd, data); });
-//		sendThread = thread([&]{ sendingForThread(id, cmd, data, &sendThread); });	
+short MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool asyncFlag) {
+	if (asyncFlag) {
+		sendDataFormat sendData = {id, cmd, data};
+		sendDataQueue.push(sendData);
 		return 0;
 	}
 	return sending(id, cmd, data);
 }
 
-short MotorSerial::send(sendDataFormat sendData, bool multiThread) {
-	return send(sendData.id, sendData.cmd, sendData.argData, multiThread);
+short MotorSerial::send(sendDataFormat sendData, bool asyncFlag) {
+	return send(sendData.id, sendData.cmd, sendData.argData, asyncFlag);
 }
 
 MotorSerial::~MotorSerial() {
+	threadLoopFlag = false;
 	if (sendThread.joinable())
 		sendThread.join();
 	serialClose(this->serialFile);
