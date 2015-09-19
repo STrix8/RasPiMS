@@ -76,7 +76,7 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 	} else {
 		serialReceiveSuccess = true;
   */
-  while(chrono::time_point<chrono::system_clock>(startTime + chrono::milliseconds(timeOut)) >= chrono::system_clock::now()) {
+  while(chrono::time_point<chrono::system_clock>(startTime + chrono::milliseconds(timeOut)) >= chrono::system_clock::now() && !sumCheckSuccess) {
 		while(serialDataAvail(serialFile) > 0) {
 			char gotData = serialGetchar(serialFile);
 			if (gotData == STX && !stxFlag) {
@@ -87,9 +87,9 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 				receiveArray[i++] = gotData;
 			}
 			if (i > 4) {
-				int sum = 0;
+				unsigned char sum = 0;
 				for (int j = 0; j < 4; ++j) 
-					sum = receiveArray[j];
+					sum += receiveArray[j];
 				if (sum == receiveArray[4]) {
 					sumCheckSuccess = true;
 					break;
