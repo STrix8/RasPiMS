@@ -51,6 +51,10 @@ void MotorSerial::init() {
 	pinMode(redePin, OUTPUT);
 }
 
+void MotorSerial::setTimeOut(int timeout) {
+	timeOut = timeout;
+}
+
 short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 	unsigned short uData = (unsigned short)data;
 	unsigned char sendArray[SEND_DATA_NUM] = {0xFF, STX, id, cmd, (unsigned char)(uData % 0x100), (unsigned char)(uData / 0x100), (unsigned char)((id + cmd + uData % 0x100 + uData / 0x100) % 0x100)};
