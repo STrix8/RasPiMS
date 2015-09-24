@@ -16,6 +16,7 @@ using namespace RPMS;
 
 const int SEND_DATA_NUM = 7;
 
+int MotorSerial::redePin = 4;
 bool MotorSerial::nowSendingFlag = false;
 int MotorSerial::timeOut = 0;
 int MotorSerial::serialFile = 0;
@@ -32,7 +33,7 @@ MotorSerial::MotorSerial(int rede, int timeout, const char *devFileName, int bRa
 	this->serialFileName = (char*)devFileName;
 	this->bRate = bRate;
 	this->timeOut = timeout;
-	redePin = rede;
+	this->redePin = rede;
 }
 
 MotorSerial::MotorSerial() {
@@ -48,7 +49,7 @@ void MotorSerial::init() {
 		serialClose(serialFile);
 		throw runtime_error("WiringPiSetupError");
 	}
-	pinMode(redePin, OUTPUT);
+	pinMode(this->redePin, OUTPUT);
 }
 
 void MotorSerial::setTimeOut(int timeout) {
@@ -61,10 +62,13 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 	while (nowSendingFlag);
 	nowSendingFlag = true;
 	
-	digitalWrite(redePin, 1);
-	for (int i = 0; i < SEND_DATA_NUM; ++i)
+	digitalWrite(this->redePin, 1);
+	delayMicroseconds(10);
+	for (int i = 0; i < SEND_DATA_NUM; ++i) {
 		serialPutchar(serialFile, sendArray[i]);
-	digitalWrite(redePin, 0);
+		delayMicroseconds(90);
+	}
+	digitalWrite(this->redePin, 0);
 	
 	bool stxFlag = false;
 	char receiveArray[5] = {};
@@ -80,8 +84,9 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 	} else {
 		serialReceiveSuccess = true;
   */
-  while(chrono::time_point<chrono::system_clock>(startTime + chrono::milliseconds(timeOut)) >= chrono::system_clock::now() && !sumCheckSuccess) {
-		while(serialDataAvail(serialFile) > 0) {
+	sumCheckSuccess = false; 
+	while(chrono::time_point<chrono::system_clock>(startTime + chrono::milliseconds(timeOut)) >= chrono::system_clock::now() && !sumCheckSuccess) {
+		while(serialDataAvail(serialFile) > 0 ) {
 			char gotData = serialGetchar(serialFile);
 			if (gotData == STX && !stxFlag) {
 				stxFlag = true;
@@ -97,8 +102,7 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 				if (sum == receiveArray[4]) {
 					sumCheckSuccess = true;
 					break;
-				} else
-					sumCheckSuccess = false; 
+				}
 			}
 		}
 	}

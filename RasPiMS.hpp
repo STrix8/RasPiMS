@@ -30,7 +30,7 @@ namespace RPMS {
 		static int serialFile;
 		static char *serialFileName;
 		static int bRate;
-		int redePin;
+		static int redePin;
 		static bool threadLoopFlag;
 		static std::thread sendThread;
 		static std::queue<sendDataFormat> sendDataQueue;

@@ -6,6 +6,7 @@ using namespace RPMS;
 
 int main(int argc, char *argv[]) {
 	MotorSerial ms;
+	ms.setTimeOut(1000);
 	try {
 		ms.init();
 	}
@@ -32,5 +33,7 @@ int main(int argc, char *argv[]) {
 		cout << "Communication Error." << endl;
 		return -1;
 	}
+	cout << (ms.sumCheckSuccess ? "Receive Success" : "Receive Failed") << endl;
+	ms.~MotorSerial();
 	return 0;
 }
