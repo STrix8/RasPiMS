@@ -63,7 +63,6 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 	nowSendingFlag = true;
 	
 	digitalWrite(this->redePin, 1);
-	delayMicroseconds(10);
 	for (int i = 0; i < SEND_DATA_NUM; ++i) {
 		serialPutchar(serialFile, sendArray[i]);
 		delayMicroseconds(90);
@@ -75,15 +74,6 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 	int i = 0;
 
 	auto startTime = chrono::system_clock::now();
-//	bool timeOutFlag = false;
-/*
-	while ((serialDataAvail(serialFile) < 7) && !timeOutFlag)
-		timeOutFlag = chrono::time_point<chrono::system_clock>(startTime + chrono::milliseconds(timeOut)) < chrono::system_clock::now();
-	if (timeOutFlag) {
-		serialReceiveSuccess = false;
-	} else {
-		serialReceiveSuccess = true;
-  */
 	sumCheckSuccess = false; 
 	while(chrono::time_point<chrono::system_clock>(startTime + chrono::milliseconds(timeOut)) >= chrono::system_clock::now() && !sumCheckSuccess) {
 		while(serialDataAvail(serialFile) > 0 ) {
