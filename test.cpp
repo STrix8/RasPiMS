@@ -34,6 +34,5 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 	cout << (ms.sumCheckSuccess ? "Receive Success" : "Receive Failed") << endl;
-	ms.~MotorSerial();
 	return 0;
 }

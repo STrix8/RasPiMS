@@ -3,6 +3,7 @@
 #include <chrono>
 #include <thread>
 #include <queue>
+#include <mutex>
 #include <cstring>
 #include <pthread.h>
 #include "RasPiMS.hpp"
@@ -16,28 +17,22 @@ using namespace RPMS;
 
 const int SEND_DATA_NUM = 7;
 
-int MotorSerial::redePin = 4;
-bool MotorSerial::nowSendingFlag = false;
-int MotorSerial::timeOut = 0;
-int MotorSerial::serialFile = 0;
-char *MotorSerial::serialFileName;
-int MotorSerial::bRate = 0;
-bool MotorSerial::threadLoopFlag = false;
-thread MotorSerial::sendThread;
-queue<sendDataFormat> MotorSerial::sendDataQueue;
-
 MotorSerial::MotorSerial(int rede, int timeout, const char *devFileName, int bRate) {
+	init(rede, timeout, devFileName, bRate);	
+}
+
+MotorSerial::MotorSerial() {
+	init(4, 10, "/dev/ttyAMA0", 115200);
+}
+
+void MotorSerial::init(int rede, int timeout, const char *devFileName, int bRate) {
 	sumCheckSuccess = false;
-	serialReceiveSuccess = false;
 	recentReceiveData = 0;
+	threadLoopFlag = false;
 	this->serialFileName = (char*)devFileName;
 	this->bRate = bRate;
 	this->timeOut = timeout;
 	this->redePin = rede;
-}
-
-MotorSerial::MotorSerial() {
-	MotorSerial(4);
 }
 
 void MotorSerial::init() {
@@ -59,8 +54,7 @@ void MotorSerial::setTimeOut(int timeout) {
 short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 	unsigned short uData = (unsigned short)data;
 	unsigned char sendArray[SEND_DATA_NUM] = {0xFF, STX, id, cmd, (unsigned char)(uData % 0x100), (unsigned char)(uData / 0x100), (unsigned char)((id + cmd + uData % 0x100 + uData / 0x100) % 0x100)};
-	while (nowSendingFlag);
-	nowSendingFlag = true;
+	lock_guard<mutex> lock(mtx);
 	
 	digitalWrite(this->redePin, 1);
 	for (int i = 0; i < SEND_DATA_NUM; ++i) {
@@ -99,7 +93,6 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 	if (serialDataAvail(serialFile) < 0) {
 		throw runtime_error("SerialComError");
 	}
-	nowSendingFlag = false;
 	recentReceiveData = receiveArray[2] + receiveArray[3] * 0x100;
 	return recentReceiveData;
 }
