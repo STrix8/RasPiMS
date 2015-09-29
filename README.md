@@ -29,3 +29,20 @@ short RPMS::MotorSerial::send(unsigned char id, unsigned char cmd, short data, b
 * asyncFlag = falseならsending()と同じ動作をします.asyncFlag = trueなら非同期で通信してくれます。その場合返り値は0です.
 * sendingよりもこっちを使っとけばタイプ数も少なくて済むし非同期・同期の切り替えも楽だよ.
 * RaspberryPiはシングルコアなので, 非同期モードで短時間に大量のデータを送るようなコードを書くと通信を行うスレッドの処理が行われず,想定してるのと異なる動作をする場合があります.注意してください.
+
+```cpp
+bool RPMS::MotorSerial::sumCheckSuccess
+```
+* 直近の通信が受信のsumチェックの成功まで行ったかどうかの結果が入っています.
+
+```cpp
+short RPMS::MotorSerial::recentReceiveData
+```
+* 直近の通信で受信したdataが入っています.
+* send()を非同期モードで使ったが結果がほしい時とかに使うといいのかもしれない.
+
+```cpp
+static bool RPMS::MotorSerial::wiringPiSetupGpioFlag
+```
+* wiringPiSetupGpio()を呼んだかどうかが入っています.
+* init()より前にwiringPiSetupGpio()を呼んでいる場合とかにtrueを代入しておくと良いかもしれない.
