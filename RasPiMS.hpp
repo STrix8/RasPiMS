@@ -23,9 +23,10 @@ namespace RPMS {
 		virtual ~MotorSerial();
 		bool sumCheckSuccess;
 		short recentReceiveData;
+		static bool wiringPiSetupGpioFlag;
 //		bool serialReceiveSuccess;
 	private:
-		void init(int, int, const char*, int);  
+		void init(int, int, const char*, int);
 		void sendingLoop(void);
 		char *serialFileName;
 		bool nowSendingFlag;

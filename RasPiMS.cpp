@@ -17,8 +17,10 @@ using namespace RPMS;
 
 const int SEND_DATA_NUM = 7;
 
+bool MotorSerial::wiringPiSetupGpioFlag = false;
+
 MotorSerial::MotorSerial(int rede, int timeout, const char *devFileName, int bRate) {
-	init(rede, timeout, devFileName, bRate);	
+	init(rede, timeout, devFileName, bRate);
 }
 
 MotorSerial::MotorSerial() {
@@ -40,9 +42,12 @@ void MotorSerial::init() {
 	if (serialFile < 0) {
 		throw runtime_error("SerialOpenError");
 	}
-	if (wiringPiSetupGpio() < 0) {
-		serialClose(serialFile);
-		throw runtime_error("WiringPiSetupError");
+	if (!wiringPiSetupGpioFlag) {
+		if (wiringPiSetupGpio() < 0) {
+			serialClose(serialFile);
+			throw runtime_error("WiringPiSetupError");
+		}
+		wiringPiSetupGpioFlag = true;
 	}
 	pinMode(this->redePin, OUTPUT);
 }
@@ -55,20 +60,20 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 	unsigned short uData = (unsigned short)data;
 	unsigned char sendArray[SEND_DATA_NUM] = {0xFF, STX, id, cmd, (unsigned char)(uData % 0x100), (unsigned char)(uData / 0x100), (unsigned char)((id + cmd + uData % 0x100 + uData / 0x100) % 0x100)};
 	lock_guard<mutex> lock(mtx);
-	
+
 	digitalWrite(this->redePin, 1);
 	for (int i = 0; i < SEND_DATA_NUM; ++i) {
 		serialPutchar(serialFile, sendArray[i]);
 		delayMicroseconds(90);
 	}
 	digitalWrite(this->redePin, 0);
-	
+
 	bool stxFlag = false;
 	char receiveArray[5] = {};
 	int i = 0;
 
 	auto startTime = chrono::system_clock::now();
-	sumCheckSuccess = false; 
+	sumCheckSuccess = false;
 	while(chrono::time_point<chrono::system_clock>(startTime + chrono::milliseconds(timeOut)) >= chrono::system_clock::now() && !sumCheckSuccess) {
 		while(serialDataAvail(serialFile) > 0 ) {
 			char gotData = serialGetchar(serialFile);
@@ -81,7 +86,7 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 			}
 			if (i > 4) {
 				unsigned char sum = 0;
-				for (int j = 0; j < 4; ++j) 
+				for (int j = 0; j < 4; ++j)
 					sum += receiveArray[j];
 				if (sum == receiveArray[4]) {
 					sumCheckSuccess = true;
@@ -112,7 +117,7 @@ short MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool as
 		sendDataFormat sendData = {id, cmd, data};
 		sendDataQueue.push(sendData);
 		if (!threadLoopFlag ) {
-			if (sendThread.joinable()) 
+			if (sendThread.joinable())
 				sendThread.join();
 			sendThread = thread([&]{ sendingLoop(); });
 			sched_param sch_params;
