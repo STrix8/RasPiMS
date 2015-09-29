@@ -11,7 +11,7 @@ using namespace std;
 using namespace RPMS;
 
 int main(int argc, char *argv[]) {
-	MotorSerial ms;				// すべてデフォルト値でインスタンスを生成
+	MotorSerial ms;		// すべてデフォルト値でインスタンスを生成
 	ms.setTimeOut(1000);	// 1秒のタイムアウトを設定
 	try {
 		ms.init();	// 初期化
