@@ -1,15 +1,31 @@
 # RasPiMoterSerial
 
-先輩の作ったモータードライバとかのネットワークで便利に通信したいとおもって作った
+* 先輩の作ったモータードライバとかのネットワークで便利に通信したいとおもって作った
+* 通信相手は[これ](https://github.com/okayu9/ScrpMotor)を書き込んだArduinoのUARTをRS485に変換したもののネットワークを想定しています
+* WiringPiを使ってます C++11以降のコンパイラでビルドしてください
+* RPMS::MotorSerialクラスのインスタンスを作って使ってください
+* インスタンス一つにつきシリアルポート一つの気持ちで使ってね
 
-WiringPiを使ってます C++11以降のコンパイラでビルドしてください
+## リファレンス的な何か
+```cpp
+RPMS::MotorSerial(int ReDe = 4, double timeout = 0.01, consta char * devFileName = "/dev/ttyAMA0")
+```
+* コンストラクタです.
+* 引数は, REピンとDEピンの指定, タイムアウトの指定(ms), デバイスのファイル名
 
-RPMS::MotorSerialクラスのインスタンスを作って使ってください
+```cpp
+void RPMS::MotorSerial::init()
+```
+* GPIOの初期化とか、シリアル通信のOpenなどを行います。インスタンスにつき一度だけ最初に呼んでください.
 
-RPMS::MotorSerial(int ReDe = 4, double timeout = 0.01, consta char * devFileName = "/dev/ttyAMA0") REピンとDEピンの指定, タイムアウトの指定, デバイスのファイル名
+```cpp
+short RPMS::MotorSerial::sending(unsigned char id, unsigned char cmd, short data)
+```
+* id番の基板に対してcmd, dataを送信します.返り値としてid番の基板から返ってきたdataを返します.
 
-void RPMS::MotorSerial::init() GPIOの初期化とか、シリアル通信のOpenなどを行います。インスタンスにつき一度だけ最初に呼んでください。
-
-short RPMS::MotorSerial::sending(unsigned char id, unsigned char cmd, short data) id番の基板に対してcmd dataを送信します。返り値としてid番の基板から返ってきたdataを返します。
-
-short RPMS::MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool asyncFlag = false) multiThread = falseならsending()と同じ動作をします。multiThread = trueなら非同期で通信してくれます。その場合返り値は0です。
+```cpp
+short RPMS::MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool asyncFlag = false)
+```
+* asyncFlag = falseならsending()と同じ動作をします.asyncFlag = trueなら非同期で通信してくれます。その場合返り値は0です.
+* sendingよりもこっちを使っとけばタイプ数も少なくて済むし非同期・同期の切り替えも楽だよ.
+* RaspberryPiはシングルコアなので, 非同期モードで短時間に大量のデータを送るようなコードを書くと通信を行うスレッドの処理が行われず,想定してるのと異なる動作をする場合があります.注意してください.
