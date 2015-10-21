@@ -6,6 +6,7 @@
 #include <mutex>
 #include <cstring>
 #include <pthread.h>
+#include <string>
 #include "RasPiMS.hpp"
 
 #include <iostream>
@@ -16,6 +17,7 @@ using namespace std;
 using namespace RPMS;
 
 const int SEND_DATA_NUM = 7;
+int MaxMotorPower = 200;
 
 bool MotorSerial::wiringPiSetupGpioFlag = false;
 
@@ -139,4 +141,85 @@ MotorSerial::~MotorSerial() {
 	if (sendThread.joinable())
 		sendThread.join();
 	serialClose(this->serialFile);
+}
+
+Motor::Motor() {
+	initFlag = false;
+}
+
+Motor::Motor(unsigned char id, unsigned char mNum, double magni, MotorSerial *ms, short maxPower) {
+	this->id = id;
+	this->mNum = mNum;
+	this->magni = magni;
+	this->ms = ms;
+	this->maxPower = maxPower;
+	initFlag = true;
+}
+
+Motor::Motor(MotorDataFormat MotorData, MotorSerial *ms, short maxPower) {
+	this->id = MotorData.id;
+	this->mNum = MotorData.mNum;
+	this->magni = MotorData.magni;
+	this->ms = ms;
+	this->maxPower = maxPower;
+	initFlag = true;
+}
+
+short changeMaxPower(short maxPower) {
+	return (this-> maxPower = maxPower);
+}
+
+virtual bool spin(short motorPower, bool asyncFlag) {
+	if (!initFlag)
+		return false;
+	motorPower = (short)(magni * motorPower);
+	if (motorPower > maxPower)
+		motorPower = maxPower;
+	if (motorPower < -maxPower)
+		motorPower = -maxPower;
+	return motorPower == ms->send(id, 2 + mNum, motorPower, asyncFlag);
+}
+
+virtual ~Motor() {
+	spin(0);
+}
+
+string pathGet(void) {
+	// 現在のパスを取得
+	char buf[512] = {};
+	readlink("/proc/self/exe", buf, sizeof(buf) - 1); 	// 実行ファイルのパスを取得
+	string path(buf);
+	return path;
+}
+
+int loadMotorSetting(MotorDataFormat *MotorDatas, int NumMotors) {	
+	// モーターの設定を読み込む
+	ifstream settingFile;
+	string path(pathGet().c_str());
+	path.erase(path.find_last_of('/'));
+	path += "/MotorSetting";
+	settingFile.open(path);
+	if (!settingFile)
+		return -1;
+	for (int i = 0;(i < NumMotors) && (!settingFile.eof()); ++i) {
+		for (int j = 0;j < 3 && (!settingFile.eof());) {
+			string str;
+			char *ends;
+			settingFile >> str;
+			if ((str.c_str()[0] >= '0' && str.c_str()[0] <= '9') || (j == 2 && str.c_str()[0] == '-')) {
+				switch(j++) {
+				case 0:
+					Motor[i].id = atoi(str.c_str());
+					break;
+				case 1:
+					Motor[i].mNum = atoi(str.c_str());
+					break;
+				case 2:
+					Motor[i].magni = strtod(str.c_str(), &ends);
+					break;
+				}
+			}
+		}
+	}
+	return 0;
 }

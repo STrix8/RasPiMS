@@ -4,13 +4,22 @@
 #include <thread>
 #include <queue>
 #include <mutex>
+#include <string>
 
 namespace RPMS {
+	extern int MaxMotorPower;
+
 	typedef struct {
 		unsigned char id;
 		unsigned char cmd;
 		short argData;
-	}sendDataFormat;
+	}SendDataFormat;
+	typedef struct {
+		unsigned char id;
+		unsigned char mNum;
+		double magni;
+	}MotorDataFormat;
+
 	class MotorSerial {
 	public:
 		MotorSerial(int, int timeout = 10, const char *devFileName = "/dev/ttyAMA0", int bRate = 115200);
@@ -18,7 +27,7 @@ namespace RPMS {
 		void init();
 		void setTimeOut(int);
 		short send(unsigned char, unsigned char, short, bool asyncFlag = false);
-		short send(sendDataFormat, bool asyncFlag = false);
+		short send(SendDataFormat, bool asyncFlag = false);
 		short sending(unsigned char, unsigned char, short);
 		virtual ~MotorSerial();
 		bool sumCheckSuccess;
@@ -36,7 +45,25 @@ namespace RPMS {
 		int bRate;
 		int redePin;
 		std::thread sendThread;
-		std::queue<sendDataFormat> sendDataQueue;
+		std::queue<SendDataFormat> sendDataQueue;
 		std::mutex mtx;
 	};
+	class Motor {
+	public :
+		Motor();
+		Motor(unsigned char, unsigned char, double, MotorSerial*, short maxPower = MaxMotorPower);
+		Motor(MotorDataFormat, MotorSerial*, short maxPower = MaxMotorPower);
+		short changeMaxPower(short);
+		virtual bool spin(short, bool asyncFlag = false);		
+		virtual ~Motor();
+	private :
+		MotorSerial *ms;
+		unsigned char id;
+		unsigned char mNum;
+		double magni;
+		short maxPower;
+		bool initFlag;
+	};
+	int loadMotorSetting(MotorDataFormat*, int);
+	std::string pathGet();
 }
