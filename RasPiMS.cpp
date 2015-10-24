@@ -185,13 +185,12 @@ Motor::~Motor() {
 	spin(0);
 }
 
-int loadMotorSetting(MotorDataFormat *MotorDatas, int NumMotors) {	
+int loadMotorSetting(char* FileName, MotorDataFormat *MotorDatas, int NumMotors) {	
 	// 現在のパスを取得
 	char buf[512] = {};
 	readlink("/proc/self/exe", buf, sizeof(buf) - 1); 	// 実行ファイルのパスを取得
 	string path(buf);
-	path.erase(path.find_last_of('/'));
-	path += "/MotorSetting";
+	path += FileName;
 	// モーターの設定を読み込む
 	ifstream settingFile;
 	settingFile.open(path);

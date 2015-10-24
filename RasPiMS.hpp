@@ -64,5 +64,5 @@ namespace RPMS {
 		short maxPower;
 		bool initFlag;
 	};
-	int loadMotorSetting(MotorDataFormat*, int);
+	int loadMotorSetting(char*, MotorDataFormat*, int);
 }
