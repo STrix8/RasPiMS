@@ -22,7 +22,7 @@ namespace RPMS {
 
 	class MotorSerial {
 	public:
-		MotorSerial(int, int timeout = 10, const char *devFileName = "/dev/ttyAMA0", int bRate = 115200);
+		MotorSerial(int, int timeout = 10, const char* devFileName = "/dev/ttyAMA0", int bRate = 115200);
 		MotorSerial();
 		void init();
 		void setTimeOut(int);
@@ -37,7 +37,7 @@ namespace RPMS {
 	private:
 		void init(int, int, const char*, int);
 		void sendingLoop(void);
-		char *serialFileName;
+		char* serialFileName;
 		bool nowSendingFlag;
 		bool threadLoopFlag;
 		int timeOut;
@@ -57,7 +57,7 @@ namespace RPMS {
 		virtual bool spin(short, bool asyncFlag = false);		
 		virtual ~Motor();
 	private :
-		MotorSerial *ms;
+		MotorSerial* ms;
 		unsigned char id;
 		unsigned char mNum;
 		double magni;
@@ -65,5 +65,4 @@ namespace RPMS {
 		bool initFlag;
 	};
 	int loadMotorSetting(MotorDataFormat*, int);
-	std::string pathGet();
 }

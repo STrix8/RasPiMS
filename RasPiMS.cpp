@@ -7,6 +7,7 @@
 #include <cstring>
 #include <pthread.h>
 #include <string>
+#include <unistd.h>
 #include "RasPiMS.hpp"
 
 #include <iostream>
@@ -21,7 +22,7 @@ int MaxMotorPower = 200;
 
 bool MotorSerial::wiringPiSetupGpioFlag = false;
 
-MotorSerial::MotorSerial(int rede, int timeout, const char *devFileName, int bRate) {
+MotorSerial::MotorSerial(int rede, int timeout, const char* devFileName, int bRate) {
 	init(rede, timeout, devFileName, bRate);
 }
 
@@ -29,7 +30,7 @@ MotorSerial::MotorSerial() {
 	init(4, 10, "/dev/ttyAMA0", 115200);
 }
 
-void MotorSerial::init(int rede, int timeout, const char *devFileName, int bRate) {
+void MotorSerial::init(int rede, int timeout, const char* devFileName, int bRate) {
 	sumCheckSuccess = false;
 	recentReceiveData = 0;
 	threadLoopFlag = false;
@@ -107,7 +108,7 @@ short MotorSerial::sending(unsigned char id, unsigned char cmd, short data) {
 void MotorSerial::sendingLoop(void) {
 	while (!sendDataQueue.empty()) {
 		threadLoopFlag = true;
-		sendDataFormat sendData = sendDataQueue.front();
+		SendDataFormat sendData = sendDataQueue.front();
 		sendDataQueue.pop();
 		sending(sendData.id, sendData.cmd, sendData.argData);
 	}
@@ -116,7 +117,7 @@ void MotorSerial::sendingLoop(void) {
 
 short MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool asyncFlag) {
 	if (asyncFlag) {
-		sendDataFormat sendData = {id, cmd, data};
+		SendDataFormat sendData = {id, cmd, data};
 		sendDataQueue.push(sendData);
 		if (!threadLoopFlag ) {
 			if (sendThread.joinable())
@@ -133,7 +134,7 @@ short MotorSerial::send(unsigned char id, unsigned char cmd, short data, bool as
 	return sending(id, cmd, data);
 }
 
-short MotorSerial::send(sendDataFormat sendData, bool asyncFlag) {
+short MotorSerial::send(SendDataFormat sendData, bool asyncFlag) {
 	return send(sendData.id, sendData.cmd, sendData.argData, asyncFlag);
 }
 
@@ -165,11 +166,11 @@ Motor::Motor(MotorDataFormat MotorData, MotorSerial *ms, short maxPower) {
 	initFlag = true;
 }
 
-short changeMaxPower(short maxPower) {
+short Motor::changeMaxPower(short maxPower) {
 	return (this-> maxPower = maxPower);
 }
 
-virtual bool spin(short motorPower, bool asyncFlag) {
+bool Motor::spin(short motorPower, bool asyncFlag) {
 	if (!initFlag)
 		return false;
 	motorPower = (short)(magni * motorPower);
@@ -180,42 +181,37 @@ virtual bool spin(short motorPower, bool asyncFlag) {
 	return motorPower == ms->send(id, 2 + mNum, motorPower, asyncFlag);
 }
 
-virtual ~Motor() {
+Motor::~Motor() {
 	spin(0);
 }
 
-string pathGet(void) {
+int loadMotorSetting(MotorDataFormat *MotorDatas, int NumMotors) {	
 	// 現在のパスを取得
 	char buf[512] = {};
 	readlink("/proc/self/exe", buf, sizeof(buf) - 1); 	// 実行ファイルのパスを取得
 	string path(buf);
-	return path;
-}
-
-int loadMotorSetting(MotorDataFormat *MotorDatas, int NumMotors) {	
-	// モーターの設定を読み込む
-	ifstream settingFile;
-	string path(pathGet().c_str());
 	path.erase(path.find_last_of('/'));
 	path += "/MotorSetting";
+	// モーターの設定を読み込む
+	ifstream settingFile;
 	settingFile.open(path);
 	if (!settingFile)
 		return -1;
 	for (int i = 0;(i < NumMotors) && (!settingFile.eof()); ++i) {
-		for (int j = 0;j < 3 && (!settingFile.eof());) {
+		for (int j = 0;j < 3 && (!settingFile.eof());++j) {
 			string str;
-			char *ends;
+			char* ends;
 			settingFile >> str;
 			if ((str.c_str()[0] >= '0' && str.c_str()[0] <= '9') || (j == 2 && str.c_str()[0] == '-')) {
-				switch(j++) {
+				switch(j) {
 				case 0:
-					Motor[i].id = atoi(str.c_str());
+					MotorDatas[i].id = atoi(str.c_str());
 					break;
 				case 1:
-					Motor[i].mNum = atoi(str.c_str());
+					MotorDatas[i].mNum = atoi(str.c_str());
 					break;
 				case 2:
-					Motor[i].magni = strtod(str.c_str(), &ends);
+					MotorDatas[i].magni = strtod(str.c_str(), &ends);
 					break;
 				}
 			}
