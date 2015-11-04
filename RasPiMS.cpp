@@ -18,7 +18,7 @@ using namespace std;
 using namespace RPMS;
 
 const int SEND_DATA_NUM = 7;
-int MaxMotorPower = 200;
+int RPMS::MaxMotorPower = 200;
 
 bool MotorSerial::wiringPiSetupGpioFlag = false;
 
@@ -184,8 +184,7 @@ bool Motor::spin(short motorPower, bool asyncFlag) {
 Motor::~Motor() {
 	spin(0);
 }
-
-int loadMotorSetting(char* FileName, MotorDataFormat* MotorDatas, int NumMotors) {	
+int RPMS::loadMotorSetting(char* FileName, RPMS::MotorDataFormat* MotorDatas, int NumMotors) {
 	// 現在のパスを取得
 	char buf[512] = {};
 	readlink("/proc/self/exe", buf, sizeof(buf) - 1); 	// 実行ファイルのパスを取得
