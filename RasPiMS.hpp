@@ -54,9 +54,9 @@ namespace RPMS {
 		Motor(unsigned char, unsigned char, double, MotorSerial*, short maxPower = MaxMotorPower);
 		Motor(MotorDataFormat, MotorSerial*, short maxPower = MaxMotorPower);
 		short changeMaxPower(short);
-		virtual bool spin(short, bool asyncFlag = false);		
+		virtual bool spin(short, bool asyncFlag = false);
 		virtual ~Motor();
-	private :
+	protected :
 		MotorSerial* ms;
 		unsigned char id;
 		unsigned char mNum;
