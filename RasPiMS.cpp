@@ -185,7 +185,7 @@ Motor::~Motor() {
 	spin(0);
 }
 
-int loadMotorSetting(char* FileName, MotorDataFormat *MotorDatas, int NumMotors) {	
+int loadMotorSetting(char* FileName, MotorDataFormat* MotorDatas, int NumMotors) {	
 	// 現在のパスを取得
 	char buf[512] = {};
 	readlink("/proc/self/exe", buf, sizeof(buf) - 1); 	// 実行ファイルのパスを取得
