@@ -1,6 +1,6 @@
 # RasPiMoterSerial
 
-** 現在[RobotUtil4RasPi](https://github.com/Owl8/RobotUtilityforRaspberryPi)のScrpMasterに移植しています.そちらを使うようにしてください **
+**現在[RobotUtil4RasPi](https://github.com/Owl8/RobotUtilityforRaspberryPi)のScrpMasterに移植しています.そちらを使うようにしてください**
 * 先輩の作ったモータードライバとかのネットワークで便利に通信したいとおもって作った
 * [SCRP](https://github.com/okayu9/SCRP)に従ってRaspberryPi等をマスタとして通信するためのライブラリみたいなもの
 * 通信相手は[これ](https://github.com/okayu9/ScrpMotor)を書き込んだArduinoのUARTをRS485に変換したもののネットワークを想定しています
